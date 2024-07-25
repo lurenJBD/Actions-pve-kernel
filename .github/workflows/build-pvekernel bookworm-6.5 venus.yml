@@ -1,4 +1,4 @@
-name: Build pve-kernel bookworm-6.5
+name: Build pve-kernel bookworm-6.5 Venus Support
 
 on:
   workflow_dispatch:
