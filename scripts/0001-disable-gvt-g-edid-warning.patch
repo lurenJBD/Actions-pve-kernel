@@ -1,0 +1,13 @@
+diff --git a/drivers/gpu/drm/i915/gvt/edid.c b/drivers/gpu/drm/i915/gvt/edid.c
+index af9afdb53c7f..ff32234d90ad 100644
+--- a/drivers/gpu/drm/i915/gvt/edid.c
++++ b/drivers/gpu/drm/i915/gvt/edid.c
+@@ -55,7 +55,7 @@ static unsigned char edid_get_byte(struct intel_vgpu *vgpu)
+ 	unsigned char chr = 0;
+ 
+ 	if (edid->state == I2C_NOT_SPECIFIED || !edid->slave_selected) {
+-		gvt_vgpu_err("Driver tries to read EDID without proper sequence!\n");
++		/* gvt_vgpu_err("Driver tries to read EDID without proper sequence!\n"); */
+ 		return 0;
+ 	}
+ 	if (edid->current_edid_read >= EDID_SIZE) {

@@ -41,6 +41,12 @@ jobs:
         cd pve-kernel
         sudo chmod a+x $SCRIPTS_PATH/ACS_patch.sh  && $SCRIPTS_PATH/ACS_patch.sh
     
+    - name: Fix GVT-g patch
+      run: |
+        cd pve-kernel
+        cp $SCRIPTS_PATH/0001-gvt-handle-buggy-guest-driver-ppgtt-access.patch patches/kernel/
+        cp $SCRIPTS_PATH/0001-disable-gvt-g-edid-warning.patch patches/kernel/
+    
     - name: Fix DEBUG_INFO_BTF
       run: |
         cd pve-kernel
