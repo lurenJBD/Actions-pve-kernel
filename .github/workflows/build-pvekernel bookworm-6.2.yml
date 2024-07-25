@@ -46,7 +46,6 @@ jobs:
         cd pve-kernel
         cp $SCRIPTS_PATH/0001-gvt-handle-buggy-guest-driver-ppgtt-access.patch patches/kernel/
         cp $SCRIPTS_PATH/0001-disable-gvt-g-edid-warning.patch patches/kernel/
-    
 
     - name: Fix DEBUG_INFO_BTF
       run: |
