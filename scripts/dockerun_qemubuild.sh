@@ -9,7 +9,8 @@ apt-get install -y git nano screen patch fakeroot build-essential devscripts
 df -h
 cd /home/build/pve-qemu
 ls -la
-mk-build-deps --install
+git config --global --add safe.directory /home/build/pve-qemu
+yes | mk-build-deps --install
 make submodule
 chmod +x sedPatch-pve-qemu-kvm7.0-8.1-anti-detection.sh
 bash sedPatch-pve-qemu-kvm7.0-8.1-anti-detection.sh
