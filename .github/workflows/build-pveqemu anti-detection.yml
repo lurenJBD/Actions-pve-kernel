@@ -30,13 +30,14 @@ jobs:
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
-        export $(grep -Ev ^'(#|$)' .configqemu)
-        echo "REPO_COMMIT=$REPO_COMMIT"
+        git pull
 
     - name: Clone source code
       run: |
         git clone $REPO_URL -b $REPO_BRANCH pve-qemu
         cd pve-qemu
+        export $(grep -Ev ^'(#|$)' .configqemu)
+        echo "REPO_COMMIT=$REPO_COMMIT"
         git reset --hard $REPO_COMMIT
     
     - name: Add sedPatch File
