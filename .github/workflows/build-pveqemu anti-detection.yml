@@ -12,7 +12,7 @@ env:
   REPO_URL: https://git.proxmox.com/git/pve-qemu.git
   REPO_BRANCH: master
   CONFIG_FILE: .config
-  SCRIPTS_PATH: ${{ github.workspace }}/scripts/QEMUPatches
+  SCRIPTS_PATH: ${{ github.workspace }}/scripts
   SSH_ACTIONS: false
   UPLOAD_BIN_DIR: true
   TZ: Asia/Shanghai
@@ -30,12 +30,11 @@ jobs:
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
-        echo $GITHUB_ENV
         while IFS='=' read -r key value; do
           [[ $key =~ ^#.*$ ]] && continue
           echo "$key=$value" >> $GITHUB_ENV
         done < .configqemu
-        echo $GITHUB_ENV
+        echo "REPO_COMMIT=$REPO_COMMIT"
 
     - name: Clone source code
       run: |
@@ -45,7 +44,7 @@ jobs:
     - name: Add sedPatch File
       run: |
         cd pve-qemu
-        cp $SCRIPTS_PATH/sedPatch-pve-qemu-kvm7.0-8.1-anti-detection.sh .
+        cp $SCRIPTS_PATH/QEMUPatches/sedPatch-pve-qemu-kvm7.0-8.1-anti-detection.sh .
         
     - name: Freeing up disk space on CI system
       run: |
