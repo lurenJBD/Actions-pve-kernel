@@ -41,7 +41,7 @@ jobs:
         cd pve-kernel
         sudo chmod a+x $SCRIPTS_PATH/ACS_patch.sh  && $SCRIPTS_PATH/ACS_patch.sh
     
-    - name: Fix GVT-g patch
+    - name: Add GVT-g patch
       run: |
         cd pve-kernel
         cp $SCRIPTS_PATH/0001-gvt-handle-buggy-guest-driver-ppgtt-access.patch patches/kernel/
@@ -103,5 +103,5 @@ jobs:
       uses: actions/upload-artifact@master
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       with:
-        name: ${{ format('{0}-roforest', steps.getverion.outputs.version) }} 
+        name: ${{ format('{0}', steps.getverion.outputs.version) }} 
         path: pve-kernel/release
