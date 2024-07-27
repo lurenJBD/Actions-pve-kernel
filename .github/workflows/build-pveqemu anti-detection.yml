@@ -88,5 +88,5 @@ jobs:
       uses: actions/upload-artifact@master
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       with:
-        name: ${{ format('{0-anti-detection}', steps.getverion.outputs.version) }} 
+        name: ${{ format('{0}-anti-detection', steps.getverion.outputs.version) }} 
         path: pve-qemu/release
