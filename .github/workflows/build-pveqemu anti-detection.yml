@@ -1,4 +1,4 @@
-name: Build pve-kernel
+name: Build pve-qemu anti-detection
 
 on:
   workflow_dispatch:
@@ -6,13 +6,13 @@ on:
     branches:
       - master
     paths:
-      - '.configmaster'
+      - '.configqemu'
 
 env:
-  REPO_URL: https://git.proxmox.com/git/pve-kernel.git
+  REPO_URL: https://git.proxmox.com/git/pve-qemu.git
   REPO_BRANCH: master
   CONFIG_FILE: .config
-  SCRIPTS_PATH: ${{ github.workspace }}/scripts
+  SCRIPTS_PATH: ${{ github.workspace }}/scripts/QEMUPatches
   SSH_ACTIONS: false
   UPLOAD_BIN_DIR: true
   TZ: Asia/Shanghai
@@ -30,32 +30,22 @@ jobs:
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
-        git pull
-        #sudo chmod a+x $SCRIPTS_PATH/init_env.sh && sudo -E $SCRIPTS_PATH/init_env.sh
-        
+        echo $GITHUB_ENV
+        while IFS='=' read -r key value; do
+          [[ $key =~ ^#.*$ ]] && continue
+          echo "$key=$value" >> $GITHUB_ENV
+        done < .configqemu
+        echo $GITHUB_ENV
+
     - name: Clone source code
-      run: git clone $REPO_URL -b $REPO_BRANCH pve-kernel
+      run: |
+        git clone $REPO_URL -b $REPO_BRANCH pve-qemu
+        git reset --hard $REPO_COMMIT
     
-    - name: Fix ACS patch
+    - name: Add sedPatch File
       run: |
-        cd pve-kernel
-        sudo chmod a+x $SCRIPTS_PATH/ACS_patch.sh  && $SCRIPTS_PATH/ACS_patch.sh
-
-    - name: Add GVT-g patch
-      run: |
-        cd pve-kernel
-        cp $SCRIPTS_PATH/0001-gvt-handle-buggy-guest-driver-ppgtt-access.patch patches/kernel/
-        cp $SCRIPTS_PATH/0001-disable-gvt-g-edid-warning.patch patches/kernel/
-
-    - name: Fix DEBUG_INFO_BTF
-      run: |
-        cd pve-kernel
-        sed -i 's/${LINUX_TOOLS_DBG_DEB}/# ${LINUX_TOOLS_DBG_DEB}/' Makefile
-        
-    - name: Disable fwcheck
-      run: |
-        cd pve-kernel
-        sed -i "s/rules fwcheck abicheck/rules abicheck/" debian/rules
+        cd pve-qemu
+        cp $SCRIPTS_PATH/sedPatch-pve-qemu-kvm7.0-8.1-anti-detection.sh .
         
     - name: Freeing up disk space on CI system
       run: |
@@ -75,20 +65,18 @@ jobs:
         sudo apt-get update
         sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-    - name: Compile the PVE kernel
+    - name: Compile the PVE QEMU
       id: compile
       run: |
-        sudo chmod a+x $SCRIPTS_PATH/dockerun_bookworm.sh
-        sudo docker run -v ${{ github.workspace }}:/home/build debian:bookworm /home/build/scripts/dockerun_bookworm.sh
-        #cd pve-kernel
-        #make
+        sudo chmod a+x $SCRIPTS_PATH/dockerun_qemubuild.sh
+        sudo docker run -v ${{ github.workspace }}:/home/build debian:bookworm /home/build/scripts/dockerun_qemubuild.sh
         echo "status=success" >> $GITHUB_OUTPUT
   
     - name: Create Release Directory
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       run: |
-        sudo chmod a+w pve-kernel
-        cd pve-kernel
+        sudo chmod a+w pve-qemu
+        cd pve-qemu
         mkdir release
         cp *deb release/
         
@@ -96,12 +84,12 @@ jobs:
       id: getverion
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       run: |
-        cd pve-kernel
-        echo "version=$(ls abi-prev* | sed  's/abi-prev/pve-kernel/g' | sed 's/-pve//g')" >> $GITHUB_OUTPUT
+        cd pve-qemu
+        echo "version=$(ls pve-qemu-kvm-dbgsym* | sed -E 's/.*_([0-9.]+-[0-9]+)_amd64\.deb/\1/')" >> $GITHUB_OUTPUT
       
     - name: Upload kernel directory
       uses: actions/upload-artifact@master
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       with:
-        name: ${{ format('{0}', steps.getverion.outputs.version) }} 
-        path: pve-kernel/release
+        name: ${{ format('{0-anti-detection}', steps.getverion.outputs.version) }} 
+        path: pve-qemu/release
