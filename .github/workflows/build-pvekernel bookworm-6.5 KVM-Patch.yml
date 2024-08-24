@@ -45,7 +45,8 @@ jobs:
     - name: Add KVM patch
       run: |
         cd pve-kernel
-        cp $SCRIPTS_PATH/KVMPatches/00001-RDTSC-6.8.12.patch patches/kernel/
+        # cp $SCRIPTS_PATH/KVMPatches/00001-RDTSC-6.8.12.patch patches/kernel/
+        wget -O patches/kernel/0008-rdtsc-hook-point.patch https://github.com/zhaodice/KVM-RDTSC-SHIELD/raw/main/0008-rdtsc-hook-point.patch
 
     - name: Fix DEBUG_INFO_BTF
       run: |
