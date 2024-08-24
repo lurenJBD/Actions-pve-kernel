@@ -12,8 +12,8 @@ ls -la
 git config --global --add safe.directory /home/build/pve-qemu
 yes | mk-build-deps --install
 make submodule
-chmod +x sedPatch-pve-qemu-kvm7.0-8.1-anti-detection.sh
-bash sedPatch-pve-qemu-kvm7.0-8.1-anti-detection.sh
+chmod +x sedPatch-pve-qemu-kvm9-anti-dection.sh
+bash sedPatch-pve-qemu-kvm9-anti-dection.sh
 useradd build -d /home/build/pve-qemu
 chown -R build /home/build/pve-qemu
 su - build -c "make deb"
