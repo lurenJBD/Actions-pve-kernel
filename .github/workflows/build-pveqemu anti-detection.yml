@@ -24,7 +24,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@main
+      uses: actions/checkout@v4
     
     - name: Initialization environment
       env:
@@ -43,15 +43,15 @@ jobs:
     - name: Add sedPatch File
       run: |
         cd pve-qemu
-        cp $SCRIPTS_PATH/QEMUPatches/sedPatch-pve-qemu-kvm7.0-8.1-anti-detection.sh .
+        cp $SCRIPTS_PATH/QEMUPatches/sedPatch-pve-qemu-kvm9-anti-dection.sh .
         
-    - name: Freeing up disk space on CI system
-      run: |
-        dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 100
-        du -d 4 -ah / | sort -h | tail -n 100
-        df -h
-        sudo chmod a+x $SCRIPTS_PATH/free_disk.sh && sudo $SCRIPTS_PATH/free_disk.sh
-        df -h
+    # - name: Freeing up disk space on CI system
+    #   run: |
+    #     dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 100
+    #     du -d 4 -ah / | sort -h | tail -n 100
+    #     df -h
+    #     sudo chmod a+x $SCRIPTS_PATH/free_disk.sh && sudo $SCRIPTS_PATH/free_disk.sh
+    #     df -h
         
     - name: Setting up Docker Environment
       run: |
@@ -76,7 +76,9 @@ jobs:
         sudo chmod a+w pve-qemu
         cd pve-qemu
         mkdir release
-        cp *deb release/
+        cp pve-qemu-kvm_*.deb release/
+        cp pve-qemu-kvm-build-deps_*.deb release/
+        cp pve-qemu-kvm-dbgsym_*.deb release/
         
     - name: Init version number
       id: getverion
@@ -85,9 +87,30 @@ jobs:
         cd pve-qemu
         echo "version=$(ls pve-qemu-kvm-dbgsym* | sed -E 's/.*_([0-9.]+-[0-9]+)_amd64\.deb/\1/')" >> $GITHUB_OUTPUT
       
-    - name: Upload release directory
-      uses: actions/upload-artifact@master
+    - name: Rename specific .deb file
+      if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
+      run: |
+        cd pve-qemu/release
+        VERSION=$(ls pve-qemu-kvm_*.deb | sed -E 's/.*_([0-9.]+-[0-9]+)_amd64.deb/\1/')
+        mv pve-qemu-kvm_${VERSION}_amd64.deb pve-qemu-kvm_${VERSION}_amd64_anti-detection.deb
+      
+    - name: Upload pve-qemu-kvm_amd64_anti-detection.deb
+      uses: actions/upload-artifact@v4
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       with:
-        name: ${{ format('{0}-anti-detection', steps.getverion.outputs.version) }} 
-        path: pve-qemu/release
+        name: ${{ format('pve-qemu-kvm-{0}_amd64_anti-detection.deb', steps.getverion.outputs.version) }}
+        path: pve-qemu/release/pve-qemu-kvm_${{ steps.getverion.outputs.version }}_amd64_anti-detection.deb
+      
+    - name: Upload pve-qemu-kvm-build-deps.deb
+      uses: actions/upload-artifact@v4
+      if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
+      with:
+        name: ${{ format('pve-qemu-kvm-build-deps-{0}.deb', steps.getverion.outputs.version) }}
+        path: pve-qemu/release/pve-qemu-kvm-build-deps_${{ steps.getverion.outputs.version }}_all.deb
+      
+    - name: Upload pve-qemu-kvm-dbgsym.deb
+      uses: actions/upload-artifact@v4
+      if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
+      with:
+        name: ${{ format('pve-qemu-kvm-dbgsym-{0}.deb', steps.getverion.outputs.version) }}
+        path: pve-qemu/release/pve-qemu-kvm-dbgsym_${{ steps.getverion.outputs.version }}_amd64.deb
