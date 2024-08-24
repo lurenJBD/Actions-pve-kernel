@@ -45,7 +45,7 @@ jobs:
     - name: Add KVM patch
       run: |
         cd pve-kernel
-        cp $SCRIPTS_PATH/KVMPatches/RDTSC 6.8.12.patch patches/kernel/
+        cp $SCRIPTS_PATH/KVMPatches/00001-RDTSC-6.8.12.patch patches/kernel/
 
     - name: Fix DEBUG_INFO_BTF
       run: |
